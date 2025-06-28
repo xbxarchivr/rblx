@@ -11,6 +11,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - id: setvars
+        run: echo "timestamp=$(date +'%Y-%m-%d-%H00')" >> "$GITHUB_OUTPUT"
 
       # Runs a single command using the runners shell
       - name: query xbox live and process data
@@ -19,7 +21,7 @@ jobs:
           JSON=$(curl -s "$URL")
           SIZE=$(echo "$JSON" | jq -r '.Products[0].DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].MaxDownloadSizeInBytes')
           MB=$(echo "$SIZE" | numfmt --to=iec)
-          TIMESTAMP=$(date +'%Y-%m-%d-%H00')
+          TIMESTAMP=${{ steps.setvars.outputs.timestamp }}
 
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
@@ -55,6 +57,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: release-${{ steps.setvars.outputs.timestamp }}
           body: "${{ env.msg }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
