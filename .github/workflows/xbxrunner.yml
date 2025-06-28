@@ -16,6 +16,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: query xbox live and process data
+      - id: query
         run: |
           URL="https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=bq1tn1t79v9k&market=US&languages=en-US,neutral&MS-CV=DGU1mcuYo0WMMp+F.1s"
           JSON=$(curl -s "$URL")
@@ -40,10 +41,10 @@ jobs:
                   XBXSK=$(curl 'https://xbox.skydevil.xyz/Game/GetGamePackage?contentId=f321baf7-f79c-455f-a87b-cf3cb4bc48f2&platform=0' -H 'x-author: Devil' -H 'x-organization: XboxDownload')
                   SIZESK=$(curl "$XBXSK" | jq -r ".data.size")
                   if ((SIZESK != SIZE)); then
-                      echo "msg='No Download Found, New Roblox Version'"  >> $GITHUB_ENV
+                      echo "msg='No Download Found, New Roblox Version'"  >> "$GITHUB_OUTPUT"
                   else
                       URLSK=$(curl "$XBXSK" | jq -r ".data.size")
-                      echo "msg=$URLSK" >> $GITHUB_ENV
+                      echo "msg=$URLSK" >> "$GITHUB_OUTPUT"
                   fi
              fi
           else
@@ -58,6 +59,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release-${{ steps.setvars.outputs.timestamp }}
-          body: "${{ env.msg }}"
+          body: ${{ steps.query.outputs.msg}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
