@@ -15,8 +15,8 @@ jobs:
         run: echo "timestamp=$(date +'%Y-%m-%d-%H00')" >> "$GITHUB_OUTPUT"
 
       # Runs a single command using the runners shell
-      - name: query xbox live and process data
       - id: query
+        name: query xbox live and process data
         run: |
           URL="https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=bq1tn1t79v9k&market=US&languages=en-US,neutral&MS-CV=DGU1mcuYo0WMMp+F.1s"
           JSON=$(curl -s "$URL")
