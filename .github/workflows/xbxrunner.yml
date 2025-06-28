@@ -1,0 +1,60 @@
+name: xbxrunner
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # runs every hour
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: query xbox live and process data
+        run: |
+          URL="https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=bq1tn1t79v9k&market=US&languages=en-US,neutral&MS-CV=DGU1mcuYo0WMMp+F.1s"
+          JSON=$(curl -s "$URL")
+          SIZE=$(echo "$JSON" | jq -r '.Products[0].DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].MaxDownloadSizeInBytes')
+          MB=$(echo "$SIZE" | numfmt --to=iec)
+          TIMESTAMP=$(date +'%Y-%m-%d-%H00')
+
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
+          SIZE_D="size.txt"
+          if [ -f $SIZE_D ]; then
+             PREV_SIZE=$(cat "$SIZE_D")
+             if ((SIZE != PREV_SIZE)); then
+                  echo "$SIZE" > "$SIZE_D"
+                  git pull
+                  git add "$SIZE_D"
+                  git commit -m "Update size on change"
+                  git push
+                  git tag release-$TIMESTAMP
+                  git push origin release-$TIMESTAMP
+                  XBXSK=$(curl 'https://xbox.skydevil.xyz/Game/GetGamePackage?contentId=f321baf7-f79c-455f-a87b-cf3cb4bc48f2&platform=0' -H 'x-author: Devil' -H 'x-organization: XboxDownload')
+                  SIZESK=$(curl "$XBXSK" | jq -r ".data.size")
+                  if ((SIZESK != SIZE)); then
+                      echo "msg='No Download Found, New Roblox Version'"  >> $GITHUB_ENV
+                  else
+                      URLSK=$(curl "$XBXSK" | jq -r ".data.size")
+                      echo "msg=$URLSK" >> $GITHUB_ENV
+                  fi
+             fi
+          else
+             echo "$SIZE" > "$SIZE_D"
+             git pull
+             git add "$SIZE_D"
+             git commit -m "Update previous size"
+             git push
+          fi
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: "${{ env.msg }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
