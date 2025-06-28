@@ -28,6 +28,7 @@ jobs:
           git config --global user.name "GitHub Action"
 
           SIZE_D="size.txt"
+          MSG=""
           if [ -f $SIZE_D ]; then
              PREV_SIZE=$(cat "$SIZE_D")
              if ((SIZE != PREV_SIZE)); then
@@ -58,9 +59,10 @@ jobs:
           echo "msg=$MSG" >> $GITHUB_OUTPUT
 
       - name: Create GitHub release
+        if: ${{ steps.query.outputs.msg != '' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release-${{ steps.setvars.outputs.timestamp }}
-          body: ' ${{ steps.query.outputs.msg }}'
+          body: "${{ steps.query.outputs.msg }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
