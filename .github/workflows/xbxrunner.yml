@@ -2,7 +2,7 @@ name: xbxrunner
 
 on:
   schedule:
-    - cron: '0 * * * *'  # runs every hour
+    - cron: '*/10 * * * *'  # runs every hour
   workflow_dispatch:
 
 jobs:
