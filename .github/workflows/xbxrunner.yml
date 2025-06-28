@@ -41,10 +41,10 @@ jobs:
                   git push origin release-$TIMESTAMP
                   XBXSK=$(curl 'https://xbox.skydevil.xyz/Game/GetGamePackage?contentId=f321baf7-f79c-455f-a87b-cf3cb4bc48f2&platform=0' -H 'x-author: Devil' -H 'x-organization: XboxDownload')
                   SIZESK=$(curl "$XBXSK" | jq -r ".data.size")
+                  URLSK=$(curl "$XBXSK" | jq -r ".data.size")
                   if ((SIZESK != SIZE)); then
                       MSG="No Download Found, New Roblox Version, Old Download: $URLSK"
                   else
-                      URLSK=$(curl "$XBXSK" | jq -r ".data.size")
                       MSG="New Version, Download: $URLSK"
                   fi
              fi
