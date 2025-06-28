@@ -41,10 +41,10 @@ jobs:
                   XBXSK=$(curl 'https://xbox.skydevil.xyz/Game/GetGamePackage?contentId=f321baf7-f79c-455f-a87b-cf3cb4bc48f2&platform=0' -H 'x-author: Devil' -H 'x-organization: XboxDownload')
                   SIZESK=$(curl "$XBXSK" | jq -r ".data.size")
                   if ((SIZESK != SIZE)); then
-                      echo "msg=No Download Found, New Roblox Version"  >> "$GITHUB_OUTPUT"
+                      MSG="No Download Found, New Roblox Version"
                   else
                       URLSK=$(curl "$XBXSK" | jq -r ".data.size")
-                      echo "msg=$URLSK" >> "$GITHUB_OUTPUT"
+                      MSG="New Version, Download: $URLSK"
                   fi
              fi
           else
@@ -55,10 +55,12 @@ jobs:
              git push
           fi
 
+          echo "msg=$MSG" >> $GITHUB_OUTPUT
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release-${{ steps.setvars.outputs.timestamp }}
-          body: 'Automated, ${{ steps.query.outputs.msg }}'
+          body: ' ${{ steps.query.outputs.msg }}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
